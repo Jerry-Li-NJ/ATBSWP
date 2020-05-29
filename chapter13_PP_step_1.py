@@ -1,13 +1,18 @@
 #! /usr/bin/python3
 
 # chapter13_PP_step_1.py -- Go through every PDF in given folder, and encrypt them with given password.
+# Usage:   ./chapter13_PP_step_1.py [path] [password]
 
 import sys, os, pprint, PyPDF2
 
 def get_file_and_path(folder):	# Get a dictionary that have paths the key and filename as the value
 	FPDir = {}
+	print('\n\t########################################################')
+	print('\t############     Start walk the folder %s  #############' %(folder))
+	print('\t########################################################\n\n')
+
 	for root, dirs, files in os.walk(folder):
-		print("Root is %s ### Dirs is %s ### Files is %s" %(root, dirs, files))
+		print("Root: %s\tDirs: %s\tFiles: %s" %(root, dirs, files))
 		for file in files:
 			if file.endswith('pdf'):
 				FPDir[file] = root
@@ -19,45 +24,51 @@ if len(sys.argv) != 3:	# Check the number of argument
 elif not os.path.exists(sys.argv[1]):	# Check whether the path exist
 	print('\n\tPlease make sure the path exists!')
 else:
-	#print('\n\tTest')
 
 # Loop and get all the PDF paths.
-	originalDict = get_file_and_path(sys.argv[1])
-	pprint.pprint(originalDict)
+	originalDict = get_file_and_path(sys.argv[1]) # Get all the PDF files in the given folder 
+	#pprint.pprint(originalDict)
 
 # Loop over the list, then encrypt it, then save the new PDFs.
+	print('\n\t########################################################')
+	print('\t############     Start file encryption  #############')
+	print('\t########################################################\n\n')
 	for fileName, filePath in originalDict.items():	# Loop over the Dict
-		ReadFile = open(os.path.join(filePath,fileName), 'rb')
+		originalFileName = os.path.join(filePath,fileName)
+		ReadFile = open(originalFileName, 'rb')
 		PFW = PyPDF2.PdfFileWriter()
-		PFR = PyPDF2.PdfFileReader(ReadFile)
+		PFR = PyPDF2.PdfFileReader(ReadFile)	# Load the PDF file
 		
-		for pageNum in range(PFR.numPages):	# Loop to add all pages in PFR to PFW
+		for pageNum in range(PFR.numPages):	# Loop to copy all pages in PFR to PFW
 			page = PFR.getPage(pageNum)
 			PFW.addPage(page)
 		
 		PFW.encrypt(sys.argv[2])		# Encrypt the PFW	
 		nonPdfName = fileName.split('.')[0]
-		WriteFile = open(os.path.join(filePath,nonPdfName + '_encrypted.pdf'), 'wb')
+		WriteFile = open(os.path.join(filePath,nonPdfName + '_encrypted.pdf'), 'wb')	# Generate the encrypted PDF name
 		PFW.write(WriteFile)			# Save encrypted PDF file to HD.
-		print('\n' + os.path.join(filePath,fileName) + ' encrypted.')
+		print('\n' + originalFileName + ' encrypted and encrypted file generated.')
 		ReadFile.close()
 		WriteFile.close()
 
 # Loop and get all encrypted PDF paths.
-	EPDFAddedDict = get_file_and_path(sys.argv[1])
-	pprint.pprint(EPDFAddedDict)
+	EPDFAddedDict = get_file_and_path(sys.argv[1])	# Get all the PDF files in the given folder again
+	#pprint.pprint(EPDFAddedDict)
 	
-	willDelKeys = []
-	for fileName, filePath in EPDFAddedDict.items():
-		if not fileName.endswith('_encrypted.pdf'):
-			willDelKeys.append(fileName)
+	#willDelKeys = []
+	#for fileName, filePath in EPDFAddedDict.items():
+		#if not fileName.endswith('_encrypted.pdf'):
+			#willDelKeys.append(fileName)
 	
-	for i in willDelKeys:
-		del EPDFAddedDict[i]
-	print('Encrypted PDF files:')
-	pprint.pprint(EPDFAddedDict)
+	for i in originalDict.keys():
+		del EPDFAddedDict[i]			# Delete the original filenames in the dictionary
+	#print('Encrypted PDF files:')
+	#pprint.pprint(EPDFAddedDict)
 
 # Check all the files with reading and decryption.
+	print('\n\t########################################################')
+	print('\t############        Encrypted file checking  #############')
+	print('\t########################################################\n\n')
 	for fileName, filePath in EPDFAddedDict.items():	# Assert, decrypt
 		EPath = os.path.join(filePath,fileName)
 		EPFR = PyPDF2.PdfFileReader(EPath)
@@ -67,8 +78,11 @@ else:
 		else:
 			print('\n' + EPath + ' decryption done.')
 			textValue = EPFR.getPage(0).extractText()	# Read the file
-			print('\n' + EPath + ' read check done.')
+			print('\n' + EPath + ' readable check done.')
 # Delete all original files.
+	print('\n\t########################################################')
+	print('\t############        Deleting the original files  #############')
+	print('\t########################################################\n\n')
 	for fileName, filePath in originalDict.items():	# Loop over the Dict
 		willDeletefile = os.path.join(filePath,fileName)
 		os.remove(willDeletefile)
