@@ -1,6 +1,7 @@
 #! /usr/bin/python3
 
 # chapter13_Brute_Force_PPB.py -- Try decrypt the PDF with every possible Englist Word.
+# dictionary.txt is need for this script
 
 import sys, os, PyPDF2
 
